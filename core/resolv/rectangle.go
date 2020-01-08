@@ -1,8 +1,8 @@
 package resolv
 
 import (
+	"github.com/ClessLi/2d-game-engin/core/render"
 	"github.com/ClessLi/2d-game-engin/resource"
-	"github.com/ClessLi/2d-game-engin/src/render"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -86,5 +86,5 @@ func (r *Rectangle) Draw(renderer *render.SpriteRenderer) {
 		float32(r.Y) - size[1]/2,
 	}
 
-	renderer.DrawSprite(r.texture, position, size, r.rotate, r.color, r.isXReverse)
+	renderer.DrawSprite(r.texture, position, size, r.rotate, r.color, r.IsXReverse)
 }

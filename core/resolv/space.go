@@ -2,7 +2,7 @@ package resolv
 
 import (
 	"fmt"
-	"github.com/ClessLi/2d-game-engin/src/render"
+	"github.com/ClessLi/2d-game-engin/core/render"
 )
 
 /*A Space represents a collection that holds Shapes for collision detection in the same common space. A Space is arbitrarily large -

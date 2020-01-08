@@ -1,8 +1,8 @@
 package resolv
 
 import (
+	"github.com/ClessLi/2d-game-engin/core/render"
 	"github.com/ClessLi/2d-game-engin/resource"
-	"github.com/ClessLi/2d-game-engin/src/render"
 	"github.com/go-gl/mathgl/mgl32"
 	"math"
 	"sort"
@@ -244,5 +244,5 @@ func (l *Line) GetXY2() (x, y int32) {
 func (l *Line) Draw(renderer *render.SpriteRenderer) {
 	size := &mgl32.Vec2{float32(l.GetLength()), 3 * l.multiple}
 	position := l.getDrawXY()
-	renderer.DrawSprite(l.texture, position, size, l.rotate, l.color, l.isXReverse)
+	renderer.DrawSprite(l.texture, position, size, l.rotate, l.color, l.IsXReverse)
 }

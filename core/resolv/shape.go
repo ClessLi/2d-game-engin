@@ -1,8 +1,8 @@
 package resolv
 
 import (
+	"github.com/ClessLi/2d-game-engin/core/render"
 	"github.com/ClessLi/2d-game-engin/resource"
-	"github.com/ClessLi/2d-game-engin/src/render"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -38,7 +38,7 @@ type BasicShape struct {
 	texture    *resource.Texture2D
 	rotate     float32
 	color      *mgl32.Vec3
-	isXReverse bool
+	IsXReverse bool
 	friction   float32
 	multiple   float32
 }
@@ -129,12 +129,12 @@ func (b *BasicShape) Move(x, y int32) {
 
 // 使对象转换为水平镜像
 func (b *BasicShape) ReverseX() {
-	b.isXReverse = true
+	b.IsXReverse = true
 }
 
 // 使对象转换为非水平镜像
 func (b *BasicShape) ForWordX() {
-	b.isXReverse = false
+	b.IsXReverse = false
 }
 
 // 获取 friction
@@ -157,7 +157,7 @@ func NewBasicShape(x, y int32, texture *resource.Texture2D, rotate float32, colo
 		texture:    texture,
 		rotate:     rotate,
 		color:      color,
-		isXReverse: false,
+		IsXReverse: false,
 		friction:   friction,
 		multiple:   multiple,
 	}

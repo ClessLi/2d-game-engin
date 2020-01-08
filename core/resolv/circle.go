@@ -2,8 +2,8 @@ package resolv
 
 import (
 	"fmt"
+	"github.com/ClessLi/2d-game-engin/core/render"
 	"github.com/ClessLi/2d-game-engin/resource"
-	"github.com/ClessLi/2d-game-engin/src/render"
 	"github.com/go-gl/mathgl/mgl32"
 	"math"
 )
@@ -142,5 +142,5 @@ func (c *Circle) Draw(renderer *render.SpriteRenderer) {
 		float32(c.X) - float32(c.Radius)*c.multiple,
 		float32(c.Y) - float32(c.Radius)*c.multiple,
 	}
-	renderer.DrawSprite(c.texture, position, size, c.rotate, c.color, c.isXReverse)
+	renderer.DrawSprite(c.texture, position, size, c.rotate, c.color, c.IsXReverse)
 }
