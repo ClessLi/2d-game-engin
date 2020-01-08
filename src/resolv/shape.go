@@ -36,11 +36,11 @@ type BasicShape struct {
 	tags       []string
 	Data       interface{}
 	texture    *resource.Texture2D
-	renderSize *mgl32.Vec2
 	rotate     float32
 	color      *mgl32.Vec3
 	isXReverse bool
 	friction   float32
+	multiple   float32
 }
 
 // GetTags returns a reference to the the string array representing the tags on the BasicShape.
@@ -127,11 +127,6 @@ func (b *BasicShape) Move(x, y int32) {
 	b.Y += y
 }
 
-// 获取渲染尺寸
-func (b *BasicShape) GetSize() mgl32.Vec2 {
-	return *b.renderSize
-}
-
 // 使对象转换为水平镜像
 func (b *BasicShape) ReverseX() {
 	b.isXReverse = true
@@ -153,17 +148,17 @@ func (b *BasicShape) SetFriction(friction float32) {
 }
 
 // 实例化 BasicShape
-func NewBasicShape(x, y int32, texture string, size *mgl32.Vec2, rotate float32, color *mgl32.Vec3, friction float32) *BasicShape {
+func NewBasicShape(x, y int32, texture *resource.Texture2D, rotate float32, color *mgl32.Vec3, friction, multiple float32) *BasicShape {
 	return &BasicShape{
 		X:          x,
 		Y:          y,
 		tags:       nil,
 		Data:       nil,
-		texture:    resource.GetTexture(texture),
-		renderSize: size,
+		texture:    texture,
 		rotate:     rotate,
 		color:      color,
 		isXReverse: false,
 		friction:   friction,
+		multiple:   multiple,
 	}
 }

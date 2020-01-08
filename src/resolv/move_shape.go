@@ -1,6 +1,9 @@
 package resolv
 
-import "github.com/ClessLi/2d-game-engin/resource"
+import (
+	"github.com/ClessLi/2d-game-engin/resource"
+	"github.com/go-gl/mathgl/mgl32"
+)
 
 // 可移动的游戏对象
 type MoveShape struct {
@@ -25,11 +28,19 @@ type MoveShape struct {
 	moveDelta float32
 }
 
-func NewMoveShape(bs BasicShape, moveList []string, standList []string) *MoveShape {
-	moveTextures := resource.GetTexturesByName(moveList...)
-	standTextures := resource.GetTexturesByName(standList...)
+func NewMoveShape(x, y int32, rotate, friction, multiple float32, moveTextures []*resource.Texture2D, standTextures []*resource.Texture2D) *MoveShape {
+	var texture *resource.Texture2D
+	if len(standTextures) > 0 {
+		texture = standTextures[0]
+	} else if len(moveTextures) > 0 {
+		texture = moveTextures[0]
+	} else {
+	}
+
+	bs := NewBasicShape(x, y, texture, rotate, &mgl32.Vec3{1, 1, 1}, friction, multiple)
+
 	return &MoveShape{
-		BasicShape:    bs,
+		BasicShape:    *bs,
 		isMove:        false,
 		moveTextures:  moveTextures,
 		standTextures: standTextures,

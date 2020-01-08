@@ -2,6 +2,7 @@ package resolv
 
 import (
 	"fmt"
+	"github.com/ClessLi/2d-game-engin/resource"
 	"github.com/ClessLi/2d-game-engin/src/render"
 	"github.com/go-gl/mathgl/mgl32"
 	"math"
@@ -14,20 +15,18 @@ type Circle struct {
 }
 
 // NewCircle returns a pointer to a new Circle object.
-func NewCircle(x, y, radius int32, friction float32, moveList []string, standList []string) *Circle {
+func NewCircle(x, y, radius int32, friction, drawMulti float32, moveTextures, standTextures []*resource.Texture2D) *Circle {
 	c := &Circle{
+		MoveShape: *NewMoveShape(
+			x, y,
+			0,
+			friction,
+			drawMulti,
+			moveTextures,
+			standTextures),
 		Radius: radius,
 	}
-	var texture = ""
-	if len(standList) >= 0 {
-		texture = standList[0]
-	}
-	c.MoveShape = *NewMoveShape(*NewBasicShape(x, y, texture, &mgl32.Vec2{float32(2 * radius), float32(2 * radius)}, 0, &mgl32.Vec3{1, 1, 1}, friction), moveList, standList)
 	return c
-}
-
-func (c *Circle) Clear() {
-	*c = Circle{}
 }
 
 // IsColliding returns true if the Circle is colliding with the specified other Shape, including the other Shape
@@ -126,6 +125,7 @@ func (c *Circle) isCollidingWithLine(l *Line) bool {
 	return false
 }
 
+// 获取圆对应方形的第二点横纵坐标
 func (c *Circle) GetXY2() (int32, int32) {
 	x2 := c.X + c.Radius
 	y2 := c.Y + c.Radius
@@ -134,5 +134,13 @@ func (c *Circle) GetXY2() (int32, int32) {
 
 // 渲染
 func (c *Circle) Draw(renderer *render.SpriteRenderer) {
-	renderer.DrawSprite(c.texture, &mgl32.Vec2{float32(c.X - c.Radius), float32(c.Y - c.Radius)}, c.renderSize, c.rotate, c.color, c.isXReverse)
+	size := &mgl32.Vec2{
+		2 * float32(c.Radius) * c.multiple,
+		2 * float32(c.Radius) * c.multiple,
+	}
+	position := &mgl32.Vec2{
+		float32(c.X) - float32(c.Radius)*c.multiple,
+		float32(c.Y) - float32(c.Radius)*c.multiple,
+	}
+	renderer.DrawSprite(c.texture, position, size, c.rotate, c.color, c.isXReverse)
 }
