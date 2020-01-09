@@ -1,3 +1,8 @@
+// resolv 包，该包包含了项目最基础的形状相关对象，及相关方法与函数
+// 创建者: SolarLune
+// 重构者: ClessLi
+// 创建时间: Sep 15, 2018
+// 重构时间: 2020-1-8
 package resolv
 
 import (
@@ -6,6 +11,8 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
+// Shape is a basic interface that describes a Shape that can be passed to collision testing and resolution functions and
+// exist in the same Space.
 type Shape interface {
 	IsColliding(Shape) bool
 	WouldBeColliding(Shape, int32, int32) bool
@@ -35,7 +42,7 @@ type BasicShape struct {
 	X, Y       int32
 	tags       []string
 	Data       interface{}
-	texture    *resource.Texture2D
+	Texture    *resource.Texture2D
 	rotate     float32
 	color      *mgl32.Vec3
 	IsXReverse bool
@@ -127,34 +134,38 @@ func (b *BasicShape) Move(x, y int32) {
 	b.Y += y
 }
 
-// 使对象转换为水平镜像
+// ReverseX, BasicShape 类方向转换为水平向后的方法
 func (b *BasicShape) ReverseX() {
 	b.IsXReverse = true
 }
 
-// 使对象转换为非水平镜像
+// ForWordX, BasicShape 类方向转换为水平向前的方法
 func (b *BasicShape) ForWordX() {
 	b.IsXReverse = false
 }
 
-// 获取 friction
+// GetFriction, BasicShape 类获取 friction 的方法， Shape.GetFriction() float32 的实现
+// 返回值:
+//     float32 类型
 func (b *BasicShape) GetFriction() float32 {
 	return b.friction
 }
 
-// 设置 friction
+// SetFriction, BasicShape 类设置 friction 的方法， Shape.SetFriction(float32) 的实现
+// 参数:
+//     friction: 阻力值
 func (b *BasicShape) SetFriction(friction float32) {
 	b.friction = friction
 }
 
-// 实例化 BasicShape
+// NewBasicShape, BasicShape 类的实例初始化函数
 func NewBasicShape(x, y int32, texture *resource.Texture2D, rotate float32, color *mgl32.Vec3, friction, multiple float32) *BasicShape {
 	return &BasicShape{
 		X:          x,
 		Y:          y,
 		tags:       nil,
 		Data:       nil,
-		texture:    texture,
+		Texture:    texture,
 		rotate:     rotate,
 		color:      color,
 		IsXReverse: false,

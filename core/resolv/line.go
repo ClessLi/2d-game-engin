@@ -227,7 +227,9 @@ func (l *Line) GetDelta() (int32, int32) {
 	return dx, dy
 }
 
-// 获取线段渲染起点
+// getDrawXY, Line 类获取线段渲染起点的包内方法
+// 返回值:
+//     mgl32.Vec2 类指针
 func (l *Line) getDrawXY() *mgl32.Vec2 {
 	centerX, centerY := l.Center()
 	drawX := float32(centerX) - float32(l.GetLength())/2
@@ -235,14 +237,18 @@ func (l *Line) getDrawXY() *mgl32.Vec2 {
 	return &mgl32.Vec2{drawX, drawY}
 }
 
-// 获取线段第二点坐标
+// GetXY2, Line 类获取线段第二点坐标， Shape.GetXY2() (int32, int32) 方法的实现
+// 返回值:
+//     x, y: 坐标
 func (l *Line) GetXY2() (x, y int32) {
 	return l.X2, l.Y2
 }
 
-// 渲染
+// Draw, Line 类图像渲染方法， Shape.Draw(*render.SpriteRenderer) 方法的实现
+// 参数:
+//     renderer: render.SpriteRenderer 类指针，指定渲染器
 func (l *Line) Draw(renderer *render.SpriteRenderer) {
 	size := &mgl32.Vec2{float32(l.GetLength()), 3 * l.multiple}
 	position := l.getDrawXY()
-	renderer.DrawSprite(l.texture, position, size, l.rotate, l.color, l.IsXReverse)
+	renderer.DrawSprite(l.Texture, position, size, l.rotate, l.color, l.IsXReverse)
 }

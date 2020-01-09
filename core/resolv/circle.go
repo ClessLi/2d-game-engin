@@ -90,6 +90,11 @@ func (c *Circle) GetBoundingRect() *Rectangle {
 	return r
 }
 
+// isCollidingWithLine, Circle 类判断是否与指定线段形状碰撞的包内方法
+// 参数:
+//     l: Line 类指针
+// 返回值:
+//     bool 类型， true 为碰撞， false 为未碰撞
 func (c *Circle) isCollidingWithLine(l *Line) bool {
 	AC := float64(Distance(c.X, c.Y, l.X, l.Y))
 	CB := float64(Distance(c.X, c.Y, l.X2, l.Y2))
@@ -125,14 +130,18 @@ func (c *Circle) isCollidingWithLine(l *Line) bool {
 	return false
 }
 
-// 获取圆对应方形的第二点横纵坐标
+// GetXY2, Circle 类获取圆对应方形的第二点坐标， Shape.GetXY2() (int32, int32) 方法的实现
+// 返回值:
+//     x, y: 坐标
 func (c *Circle) GetXY2() (int32, int32) {
 	x2 := c.X + c.Radius
 	y2 := c.Y + c.Radius
 	return x2, y2
 }
 
-// 渲染
+// Draw, Circle 类图像渲染方法， Shape.Draw(*render.SpriteRenderer) 方法的实现
+// 参数:
+//     renderer: render.SpriteRenderer 类指针，指定渲染器
 func (c *Circle) Draw(renderer *render.SpriteRenderer) {
 	size := &mgl32.Vec2{
 		2 * float32(c.Radius) * c.multiple,
@@ -142,5 +151,5 @@ func (c *Circle) Draw(renderer *render.SpriteRenderer) {
 		float32(c.X) - float32(c.Radius)*c.multiple,
 		float32(c.Y) - float32(c.Radius)*c.multiple,
 	}
-	renderer.DrawSprite(c.texture, position, size, c.rotate, c.color, c.IsXReverse)
+	renderer.DrawSprite(c.Texture, position, size, c.rotate, c.color, c.IsXReverse)
 }

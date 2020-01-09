@@ -311,11 +311,16 @@ func (sp *Space) Get(index int) Shape {
 	return (*sp)[index]
 }
 
-// 渲染空间对象
+// Draw, Space 类渲染空间对象的方法
+// 参数:
+//     renderer: render.SpriteRenderer 类指针，指定渲染器
 func (sp *Space) Draw(renderer *render.SpriteRenderer) {
 	// TODO: 图像集合空间渲染方法，目前暂在gameMap中Draw方法根据camera来判定集合空间内图像对象是否被渲染。
 }
 
+// GetFriction, Space 类获取 friction 的方法， Shape.GetFriction() float32 的实现
+// 返回值:
+//     float32 类型
 func (sp *Space) GetFriction() float32 {
 	if len(*sp) > 0 {
 		return (*sp)[0].GetFriction()
@@ -323,6 +328,9 @@ func (sp *Space) GetFriction() float32 {
 	return 0.0
 }
 
+// SetFriction, Space 类设置 friction 的方法， Shape.SetFriction(float32) 的实现
+// 参数:
+//     friction: 阻力值
 func (sp *Space) SetFriction(friction float32) {
 	if len(*sp) > 0 {
 
@@ -333,6 +341,9 @@ func (sp *Space) SetFriction(friction float32) {
 	}
 }
 
+// GetMaxSpd, Space 类获取最大速度的方法， Shape.GetMaxSpd() float32 的实现
+// 返回值:
+//     float32 类型
 func (sp *Space) GetMaxSpd() float32 {
 	if len(*sp) > 0 {
 		return (*sp)[0].GetMaxSpd()
@@ -340,6 +351,9 @@ func (sp *Space) GetMaxSpd() float32 {
 	return 0.0
 }
 
+// SetMaxSpd, Space 类设置最大速度的方法， Shape.SetMaxSpd(float32) 的实现
+// 参数:
+//     spd: 速度值
 func (sp *Space) SetMaxSpd(spd float32) {
 	if len(*sp) > 0 {
 
@@ -350,6 +364,9 @@ func (sp *Space) SetMaxSpd(spd float32) {
 	}
 }
 
+// GetSpd, Space 类获取移动速度的方法， Shape.GetSpd() (float32, float32) 的实现
+// 返回值:
+//     float32, float32 类型，水平与垂直方向的移动速度值
 func (sp *Space) GetSpd() (float32, float32) {
 	if len(*sp) > 0 {
 
@@ -361,6 +378,9 @@ func (sp *Space) GetSpd() (float32, float32) {
 	return 0, 0
 }
 
+// SetSpd, Space 类设置移动速度的方法， Shape.SetSpd(float32, float32) 的实现
+// 参数:
+//     spdX, spdY: 水平与垂直方向的移动速度值
 func (sp *Space) SetSpd(float32, float32) {
 	// Do nothing
 }

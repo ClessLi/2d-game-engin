@@ -70,21 +70,32 @@ func (r *Rectangle) GetBoundingCircle() *Circle {
 
 }
 
-// 获取第二点横纵坐标
+// GetXY2, Rectangle 类获取第二点坐标的方法， Shape.GetXY2() (int32, int32) 方法的实现
+// 返回值:
+//     x, y: 坐标
 func (r *Rectangle) GetXY2() (x, y int32) {
 	return r.X + r.W, r.Y + r.H
 }
 
-// 渲染
-func (r *Rectangle) Draw(renderer *render.SpriteRenderer) {
-	size := &mgl32.Vec2{
+// GetSize, Rectangle 类获取方形对象尺寸的方法
+// 返回值:
+//     mgl32.Vec2 类指针
+func (r *Rectangle) GetSize() *mgl32.Vec2 {
+	return &mgl32.Vec2{
 		r.multiple * float32(r.W),
 		r.multiple * float32(r.H),
 	}
+}
+
+// Draw, Rectangle 类图像渲染方法， Shape.Draw(*render.SpriteRenderer) 方法的实现
+// 参数:
+//     renderer: render.SpriteRenderer 类指针，指定渲染器
+func (r *Rectangle) Draw(renderer *render.SpriteRenderer) {
+	size := r.GetSize()
 	position := &mgl32.Vec2{
 		float32(r.X) - size[0]/2,
 		float32(r.Y) - size[1]/2,
 	}
 
-	renderer.DrawSprite(r.texture, position, size, r.rotate, r.color, r.IsXReverse)
+	renderer.DrawSprite(r.Texture, position, size, r.rotate, r.color, r.IsXReverse)
 }
