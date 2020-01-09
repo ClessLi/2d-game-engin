@@ -1,4 +1,4 @@
-package core
+package scene
 
 import (
 	"github.com/ClessLi/2d-game-engin/core/resolv"
