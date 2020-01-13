@@ -59,7 +59,7 @@ func (c *Camera) resetScreenSize(width, height float32) {
 func (c *Camera) InPosition(x, y, sceneW, sceneH float32) {
 	if x <= 0 {
 		c.X = 0
-	} else if x+c.W < sceneW {
+	} else if x+c.W > sceneW {
 		c.X = sceneW - c.W
 	} else {
 		c.X = x

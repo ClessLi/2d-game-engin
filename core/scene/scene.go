@@ -17,7 +17,7 @@ type Scene struct {
 	//精灵渲染器
 	renderer *render.SpriteRenderer
 	//摄像头
-	camera     *Camera
+	Camera     *Camera
 	Keys       [1024]bool
 	LockedKeys [1024]bool
 	Init       func()
@@ -29,107 +29,115 @@ type Scene struct {
 //     w, h: 场景尺寸
 //     p: Player 玩家角色类指针
 //     sp: resolv.Space 空间集合类指针，用于定义场景地图
-//     camera: Camera 镜头类指针，用于 Scene 场景类绑定 camera 子类
+//     Camera: Camera 镜头类指针，用于 Scene 场景类绑定 Camera 子类
 //     init: Init 函数，用于场景 Create() 方法初始化时调用
 // 返回值:
 //     Scene 类指针
-func NewScene(w, h float32, p *Player, sp *resolv.Space, camera *Camera, init func()) *Scene {
-	sp.Add(p)
+func NewScene(sceneW, sceneH float32, p *Player, sp *resolv.Space, camera *Camera, init func()) *Scene {
+
+	if p != nil && sp != nil {
+		sp.Add(p)
+	}
+
 	return &Scene{
 		Player:     p,
 		Map:        sp,
 		renderer:   nil,
-		camera:     camera,
+		Camera:     camera,
 		Keys:       [1024]bool{},
 		LockedKeys: [1024]bool{},
 		Init:       init,
-		W:          w,
-		H:          h,
+		W:          sceneW,
+		H:          sceneH,
 	}
 }
 
 // resetSceneSize, Scene 类重置场景边界的包内方法
 // 参数:
 //     width, height: 场景尺寸
-func (gm *Scene) resetSceneSize(width, height float32) {
-	gm.W = width
-	gm.H = height
+func (s *Scene) resetSceneSize(width, height float32) {
+	s.W = width
+	s.H = height
 }
 
 // Create, Scene 类场景创建方法
 // TODO: 定义游戏场景接口，并将其作为接口方法实现
-func (gm *Scene) Create() {
+func (s *Scene) Create() {
+	//str, _ := os.Getwd()
+	//fmt.Println(str)
 	//初始化着色器
-	resource.LoadShader("../../resource/glsl/shader.vs", "../../resource/glsl/shader.fs", "sprite")
+	resource.LoadShader("resource/glsl/shader.vs", "resource/glsl/shader.fs", "sprite")
 	shader := resource.GetShader("sprite")
 	shader.Use()
 	shader.SetInt("image", 0)
 	//初始化精灵渲染器
-	gm.renderer = render.NewSpriteRenderer(shader)
-	//设置投影
-	projection := mgl32.Ortho(0, gm.W, gm.H, 0, -1, 1)
-	shader.SetMatrix4fv("projection", &projection[0])
+	s.renderer = render.NewSpriteRenderer(shader)
 
 	// 初始化地图
-	gm.Init()
+	s.Init()
+
+	//设置投影
+	// mgl32.Ortho(0, --投影宽度, --投影高度, 0, -1, 1)
+	projection := mgl32.Ortho(0, s.Camera.W, s.Camera.H, 0, -1, 1)
+	shader.SetMatrix4fv("projection", &projection[0])
 }
 
 // Update, Scene 类场景更新方法
 // TODO: 定义游戏场景接口，并将其作为接口方法实现
-func (gm *Scene) Update(delta float64) {
-	gm.Player.SpeedY += 0.5
+func (s *Scene) Update(delta float64) {
+	s.Player.SpeedY += 0.5
 
 	// 更新移动物体
-	gm.updateMove()
+	s.updateMove()
 
 	// Check for a collision downwards by just attempting a resolution downwards and seeing if it collides with something.
-	down := gm.Map.Filter(func(shape resolv.Shape) bool {
+	down := s.Map.Filter(func(shape resolv.Shape) bool {
 		if (shape.HasTags("solid") || shape.HasTags("ramp")) && !shape.HasTags("destroyed") {
 			return true
 		}
 		return false
-	}).Resolve(gm.Player, 0, 4)
+	}).Resolve(s.Player, 0, 4)
 	onGround := down.Colliding()
-	gm.Player.IsMove = false
+	s.Player.IsMove = false
 
 	// 角色左右移动
-	gm.playerMove(down)
+	s.playerMove(down)
 
 	// JUMP
-	gm.playerJump(onGround)
+	s.playerJump(onGround)
 
 	// Attack
-	gm.playerAttack(delta)
+	s.playerAttack(delta)
 
-	if !gm.Player.IsMove {
-		gm.Player.ToStand(float32(delta))
+	if !s.Player.IsMove {
+		s.Player.ToStand(float32(delta))
 	} else {
-		gm.Player.ToMove(float32(delta))
+		s.Player.ToMove(float32(delta))
 	}
 
-	x := int32(gm.Player.SpeedX)
-	y := int32(gm.Player.SpeedY)
+	x := int32(s.Player.SpeedX)
+	y := int32(s.Player.SpeedY)
 
-	solids := gm.Map.FilterByTags("solid")
-	ramps := gm.Map.FilterByTags("ramp")
-	dangers := gm.Map.FilterByTags("dangerous")
+	solids := s.Map.FilterByTags("solid")
+	ramps := s.Map.FilterByTags("ramp")
+	dangers := s.Map.FilterByTags("dangerous")
 
 	//fmt.Println("check player is dead or not.")
 	// 判断用户是否已死亡
-	if res := dangers.Resolve(gm.Player, x, y); res.Colliding() {
+	if res := dangers.Resolve(s.Player, x, y); res.Colliding() {
 		//fmt.Println("player is dead.")
-		gm.Player.AddTags("isDead")
+		s.Player.AddTags("isDead")
 	}
 
 	// X-movement. We only want to collide with solid objects (not ramps) because we want to be able to move up them
 	// and don't need to be inhibited on the x-axis when doing so.
 
-	if res := solids.Resolve(gm.Player, x, 0); res.Colliding() {
+	if res := solids.Resolve(s.Player, x, 0); res.Colliding() {
 		x = res.ResolveX
-		gm.Player.SpeedX = 0
+		s.Player.SpeedX = 0
 	}
 
-	gm.Player.X += x
+	s.Player.X += x
 
 	// Y movement. We check for ramp collision first; if we find it, then we just automatically will
 	// slide up the ramp because the player is moving into it.
@@ -137,50 +145,55 @@ func (gm *Scene) Update(delta float64) {
 	// We look for ramps a little aggressively downwards because when walking down them, we want to stick to them.
 	// If we didn't do this, then you would "bob" when walking down the ramp as the Player moves too quickly out into
 	// space for gravity to push back down onto the ramp.
-	res := ramps.Resolve(gm.Player, 0, y+4)
+	res := ramps.Resolve(s.Player, 0, y+4)
 
-	if y < 0 || (res.Teleporting && res.ResolveY < -gm.Player.H/2) {
+	if y < 0 || (res.Teleporting && res.ResolveY < -s.Player.H/2) {
 		res = resolv.Collision{}
 	}
 
 	if !res.Colliding() {
-		res = solids.Resolve(gm.Player, 0, y)
+		res = solids.Resolve(s.Player, 0, y)
 	}
 
 	if res.Colliding() {
 		y = res.ResolveY
-		gm.Player.SpeedY = 0
+		s.Player.SpeedY = 0
 	}
 
-	gm.Player.Y += y
+	s.Player.Y += y
 
-	//if gm.Player.HasTags("isDead") {
-	//	gm.Player.SpeedX = 0
+	//if s.Player.HasTags("isDead") {
+	//	s.Player.SpeedX = 0
 	//}
 
 }
 
 // Draw, Scene 类场景渲染方法
 // TODO: 定义游戏场景接口，并将其作为接口方法实现
-func (gm *Scene) Draw() {
+func (s *Scene) Draw() {
 
-	resource.GetShader("sprite").SetMatrix4fv("view", gm.camera.GetViewMatrix())
+	resource.GetShader("sprite").SetMatrix4fv("view", s.Camera.GetViewMatrix())
 	// 若角色处于死亡状态，则调整角色 Texture 为死亡态的
-	if gm.Player.HasTags("isDead") {
-		gm.Player.Texture = resource.GetTexture("x")
+	if s.Player.HasTags("isDead") {
+		s.Player.Texture = resource.GetTexture("x")
 	}
-	gm.Player.Draw(gm.renderer)
+	s.Player.Draw(s.renderer)
 
 	//摄像头跟随
-	playerSize := gm.Player.GetSize()
-	screenX := float32(gm.Player.X) - gm.camera.W/2 + playerSize[0]
-	screenY := float32(gm.Player.Y) - gm.camera.H/2 + playerSize[1]
-	gm.camera.InPosition(screenX, screenY, gm.W, gm.H)
+	//playerSize := s.Player.GetSize()
+	Px, Py := s.Player.Center()
+	//screenX := float32(s.Player.X) - s.Camera.W/2 + playerSize[0]
+	//screenY := float32(s.Player.Y) - s.Camera.H/2 + playerSize[1]
+	screenX := float32(Px) - s.Camera.W/2
+	screenY := float32(Py) - s.Camera.H/2
+	//fmt.Printf("3) Px: %d, Py: %d, sx: %f, sy: %f\n", Px, Py, s.Camera.X, s.Camera.Y)
+	s.Camera.InPosition(screenX, screenY, s.W, s.H)
+	//fmt.Printf("4) Px: %d, Py: %d, sx: %f, sy: %f\n", Px, Py, s.Camera.X, s.Camera.Y)
 
 	// TODO: 由于渲染依赖camera，暂时将space内各个对象渲染放在这个位置
-	for _, shape := range *gm.Map {
-		if shape != gm.Player && gm.isInCamera(shape) && !shape.HasTags("hide") && !shape.HasTags("destroyed") && !shape.HasTags("init") {
-			shape.Draw(gm.renderer)
+	for _, shape := range *s.Map {
+		if shape != s.Player && s.isInCamera(shape) && !shape.HasTags("hide") && !shape.HasTags("destroyed") && !shape.HasTags("init") {
+			shape.Draw(s.renderer)
 		}
 
 		if shape.HasTags("destroy") {
@@ -189,8 +202,9 @@ func (gm *Scene) Draw() {
 		}
 
 	}
+	//fmt.Println(s.Player.X, s.Player.Y, s.Camera.X, s.Camera.Y, s.Camera.W, s.Camera.H)
 
-	//if gm.DrawHelpText {
+	//if s.DrawHelpText {
 	//    DrawText(32, 16,
 	//        "-Platformer test-",
 	//        "You are the green square.",
@@ -203,8 +217,8 @@ func (gm *Scene) Draw() {
 
 // Destroy, Scene 类场景销毁方法
 // TODO: 定义游戏场景接口，并将其作为接口方法实现
-func (gm *Scene) Destroy() {
-	gm.Map.Clear()
+func (s *Scene) Destroy() {
+	s.Map.Clear()
 }
 
 // isInCamera, Scene 类判断 shape 对象是否在镜头内的包内方法
@@ -212,19 +226,20 @@ func (gm *Scene) Destroy() {
 //     shape: resolv.Shape 接口对象
 // 返回值:
 //     bool 类型， true 为在镜头内， false 为在镜头外
-func (gm *Scene) isInCamera(shape resolv.Shape) bool {
-	position := gm.camera.GetPosition()
-	x := int32(position.X())
-	y := int32(position.Y())
-	cameraRec := resolv.NewRectangle(x, y, int32(gm.camera.W), int32(gm.camera.H), 0, 0, nil, nil)
+func (s *Scene) isInCamera(shape resolv.Shape) bool {
+	//position := s.Camera.GetPosition()
+	//x := int32(position.X())
+	//y := int32(position.Y())
+	//cameraRec := resolv.NewRectangle(x, y, int32(s.Camera.W), int32(s.Camera.H), 0, 0, nil, nil)
+	cameraRec := resolv.NewRectangle(int32(s.Camera.X), int32(s.Camera.Y), int32(s.Camera.W), int32(s.Camera.H), 0, 0, nil, nil)
 	return cameraRec.IsColliding(shape)
 }
 
 // SetKeyDown, Scene 类设置控制器按键按下的方法
 // 参数:
 //     key: glfw.Key 类，对应控制器按键
-func (gm *Scene) SetKeyDown(key glfw.Key) {
-	gm.Keys[key] = true
+func (s *Scene) SetKeyDown(key glfw.Key) {
+	s.Keys[key] = true
 }
 
 // IsPressed, Scene 类判断控制器按键是否处于按下状况的方法
@@ -232,9 +247,9 @@ func (gm *Scene) SetKeyDown(key glfw.Key) {
 //     keys: glfw.Key 类参数列表，对应查询按键
 // 返回值:
 //     bool 类型， true 为查询按键列表中存在处于按下状态的按键， false 为查询列表中不含按下状态的按键
-func (gm *Scene) IsPressed(keys ...glfw.Key) bool {
+func (s *Scene) IsPressed(keys ...glfw.Key) bool {
 	for _, key := range keys {
-		if gm.LockedKeys[key] {
+		if s.LockedKeys[key] {
 			return true
 		}
 	}
@@ -244,14 +259,14 @@ func (gm *Scene) IsPressed(keys ...glfw.Key) bool {
 // PressedKey, Scene 类设置控制器按键为按下状态的方法
 // 参数:
 //     key: glfw.Key 类，对应控制器按键
-func (gm *Scene) PressedKey(key glfw.Key) {
-	gm.LockedKeys[key] = true
+func (s *Scene) PressedKey(key glfw.Key) {
+	s.LockedKeys[key] = true
 }
 
 // ReleaseKey, Scene 类设置控制器按键释放并解除按下状态的方法
-func (gm *Scene) ReleaseKey(key glfw.Key) {
-	gm.Keys[key] = false
-	gm.LockedKeys[key] = false
+func (s *Scene) ReleaseKey(key glfw.Key) {
+	s.Keys[key] = false
+	s.LockedKeys[key] = false
 }
 
 // HasOneKeyDown, Scene 类判断控制器按键列表中是否存在至少一个按键已按下的方法
@@ -259,9 +274,9 @@ func (gm *Scene) ReleaseKey(key glfw.Key) {
 //     keys: glfw.Key 类参数列表，对应查询按键
 // 返回值:
 //     bool 类型， true 为存在， false 为不存在
-func (gm *Scene) HasOneKeyDown(keys ...glfw.Key) bool {
+func (s *Scene) HasOneKeyDown(keys ...glfw.Key) bool {
 	for _, key := range keys {
-		if gm.Keys[key] {
+		if s.Keys[key] {
 			return true
 		}
 	}
@@ -271,106 +286,106 @@ func (gm *Scene) HasOneKeyDown(keys ...glfw.Key) bool {
 // playerJump, Scene 类玩家角色跳跃的包内方法
 // 参数:
 //     onGround: bool 类，角色是否着陆
-func (gm *Scene) playerJump(onGround bool) {
-	if gm.HasOneKeyDown(glfw.KeyUp, glfw.KeyW) && !gm.IsPressed(glfw.KeyUp, glfw.KeyW) && onGround && !gm.Player.HasTags("isDead") {
-		gm.Player.IsMove = true
+func (s *Scene) playerJump(onGround bool) {
+	if s.HasOneKeyDown(glfw.KeyUp, glfw.KeyW) && !s.IsPressed(glfw.KeyUp, glfw.KeyW) && onGround && !s.Player.HasTags("isDead") {
+		s.Player.IsMove = true
 		// 现在跳跃按键按下后重复跳跃
-		if gm.HasOneKeyDown(glfw.KeyUp) {
-			gm.PressedKey(glfw.KeyUp)
+		if s.HasOneKeyDown(glfw.KeyUp) {
+			s.PressedKey(glfw.KeyUp)
 		}
-		if gm.HasOneKeyDown(glfw.KeyW) {
-			gm.PressedKey(glfw.KeyW)
+		if s.HasOneKeyDown(glfw.KeyW) {
+			s.PressedKey(glfw.KeyW)
 		}
-		gm.Player.SpeedY = -16
+		s.Player.SpeedY = -16
 	}
 }
 
 // playerMove, Scene 类玩家角色移动的包内方法
 // 参数:
 //     down: resolv.Collision 类，角色着陆点所在对象
-func (gm *Scene) playerMove(down resolv.Collision) {
+func (s *Scene) playerMove(down resolv.Collision) {
 	onGround := down.Colliding()
 	friction := float32(0.01)
 	if onGround {
 		ground := down.ShapeB
-		if ground.GetFriction() <= gm.Player.GetFriction() {
+		if ground.GetFriction() <= s.Player.GetFriction() {
 			friction = ground.GetFriction()
 		} else {
-			friction = gm.Player.GetFriction()
+			friction = s.Player.GetFriction()
 		}
 	}
-	accel := gm.Player.GetFriction() + friction
+	accel := s.Player.GetFriction() + friction
 
-	if gm.Player.SpeedX > friction {
-		gm.Player.SpeedX -= friction
-	} else if gm.Player.SpeedX < -friction {
-		gm.Player.SpeedX += friction
+	if s.Player.SpeedX > friction {
+		s.Player.SpeedX -= friction
+	} else if s.Player.SpeedX < -friction {
+		s.Player.SpeedX += friction
 	} else {
-		gm.Player.SpeedX = 0
+		s.Player.SpeedX = 0
 	}
 
-	if gm.HasOneKeyDown(glfw.KeyLeft, glfw.KeyRight, glfw.KeyA, glfw.KeyD) {
-		gm.Player.IsMove = true
+	if s.HasOneKeyDown(glfw.KeyLeft, glfw.KeyRight, glfw.KeyA, glfw.KeyD) {
+		s.Player.IsMove = true
 	}
 
-	if gm.HasOneKeyDown(glfw.KeyRight, glfw.KeyD) && onGround && !gm.Player.HasTags("isDead") {
-		gm.Player.IsXReverse = false
-		gm.Player.SpeedX += accel
+	if s.HasOneKeyDown(glfw.KeyRight, glfw.KeyD) && onGround && !s.Player.HasTags("isDead") {
+		s.Player.IsXReverse = false
+		s.Player.SpeedX += accel
 	}
 
-	if gm.HasOneKeyDown(glfw.KeyLeft, glfw.KeyA) && onGround && !gm.Player.HasTags("isDead") {
-		gm.Player.IsXReverse = true
-		gm.Player.SpeedX -= accel
+	if s.HasOneKeyDown(glfw.KeyLeft, glfw.KeyA) && onGround && !s.Player.HasTags("isDead") {
+		s.Player.IsXReverse = true
+		s.Player.SpeedX -= accel
 	}
 
-	//fmt.Println(gm.Player.SpeedX)
-	if gm.Player.SpeedX > gm.Player.GetMaxSpd() {
-		gm.Player.SpeedX = gm.Player.GetMaxSpd()
+	//fmt.Println(s.Player.SpeedX)
+	if s.Player.SpeedX > s.Player.GetMaxSpd() {
+		s.Player.SpeedX = s.Player.GetMaxSpd()
 	}
 
-	if gm.Player.SpeedX < -gm.Player.GetMaxSpd() {
-		gm.Player.SpeedX = -gm.Player.GetMaxSpd()
+	if s.Player.SpeedX < -s.Player.GetMaxSpd() {
+		s.Player.SpeedX = -s.Player.GetMaxSpd()
 	}
-	//fmt.Println(gm.Player.SpeedX)
+	//fmt.Println(s.Player.SpeedX)
 }
 
 // playerAttack, Scene 类玩家角色攻击的包内方法
 // 参数:
 //      delta: float64 类型，与上次更新的时延度量
-func (gm *Scene) playerAttack(delta float64) {
-	gm.Player.weapon.CoolDown(delta)
+func (s *Scene) playerAttack(delta float64) {
+	s.Player.Weapon.CoolDown(delta)
 
 	// 调整角色攻击矢量
-	if gm.Player.IsXReverse {
-		gm.Player.AtkVec[0] = -1
+	if s.Player.IsXReverse {
+		s.Player.AtkVec[0] = -1
 	} else {
-		gm.Player.AtkVec[0] = 1
+		s.Player.AtkVec[0] = 1
 	}
 
-	if gm.HasOneKeyDown(glfw.KeyUp, glfw.KeyW) {
-		gm.Player.AtkVec[1] = -1
-	} else if gm.HasOneKeyDown(glfw.KeyDown, glfw.KeyS) {
-		gm.Player.AtkVec[1] = 1
+	if s.HasOneKeyDown(glfw.KeyUp, glfw.KeyW) {
+		s.Player.AtkVec[1] = -1
+	} else if s.HasOneKeyDown(glfw.KeyDown, glfw.KeyS) {
+		s.Player.AtkVec[1] = 1
 	} else {
-		gm.Player.AtkVec[1] = 0
+		s.Player.AtkVec[1] = 0
 	}
 
-	if gm.HasOneKeyDown(glfw.KeyJ, glfw.KeySpace) && !gm.Player.HasTags("isDead") {
-		bolt := gm.Player.Attack()
+	if s.HasOneKeyDown(glfw.KeyJ, glfw.KeySpace) && !s.Player.HasTags("isDead") {
+		bolt := s.Player.Attack()
 		if bolt != nil {
-			gm.Map.Add(bolt)
+			s.Map.Add(bolt)
 		}
 	}
 }
 
 // updateMove, Scene 类 Update() 方法调用，用于更新“移动物体”位置的包内方法
-func (gm *Scene) updateMove() {
-	move := gm.Map.FilterByTags("isMove")
+func (s *Scene) updateMove() {
+	move := s.Map.FilterByTags("isMove")
 	for i := 0; i < move.Length(); i++ {
 		shape := move.Get(i)
 		X, Y := shape.GetXY()
 		x, y := shape.GetSpd()
-		if res := gm.Map.FilterByTags("solid").Resolve(shape, int32(x), int32(y)); res.Colliding() {
+		if res := s.Map.FilterByTags("solid").Resolve(shape, int32(x), int32(y)); res.Colliding() {
 			x = float32(res.ResolveX)
 			y = float32(res.ResolveY)
 			shape.SetSpd(x, y)

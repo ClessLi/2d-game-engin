@@ -9,7 +9,7 @@ import (
 // Player, 玩家角色对象，暂以方形作为角色的形状对象，包含了武器类型与攻击矢量
 type Player struct {
 	resolv.Rectangle
-	weapon Weapon
+	Weapon Weapon
 	AtkVec mgl32.Vec2
 }
 
@@ -30,7 +30,7 @@ func NewPlayer(x, y, w, h int32, friction, drawMulti float32, moveList, standLis
 		resource.GetTexturesByName(standList...))
 	p := &Player{
 		Rectangle: *r,
-		weapon:    nil,
+		Weapon:    nil,
 	}
 	return p
 }
@@ -47,9 +47,9 @@ func (p *Player) Attack() resolv.Shape {
 	}
 	y += p.H / 4
 
-	switch p.weapon.(type) {
+	switch p.Weapon.(type) {
 	case *LongRangeWeapon:
-		return p.weapon.Attack(x, y, p.AtkVec, p.IsXReverse)
+		return p.Weapon.Attack(x, y, p.AtkVec, p.IsXReverse)
 	}
 	return nil
 }
